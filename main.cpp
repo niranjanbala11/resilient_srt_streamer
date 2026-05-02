@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
     g_object_set(x264enc,
                  "tune", 0x00000004, // zerolatency
                  "speed-preset", 1,  // ultrafast
-                 "bitrate", 1000,
+                 "bitrate", 3000,
                  "key-int-max", 30,
                  NULL);
 
