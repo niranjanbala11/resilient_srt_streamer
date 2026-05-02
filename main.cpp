@@ -97,6 +97,13 @@ void on_pad_added(GstElement *src, GstPad *new_pad, gpointer data) {
     gst_object_unref(sink_pad);
 }
 
+int get_preset_value(const std::string& preset) {
+    if (preset == "ultrafast") return 1;
+    if (preset == "veryfast") return 2;
+    if (preset == "faster") return 3;
+    return 1; // default
+}
+
 // ------------------------
 // Main
 // ------------------------
@@ -107,6 +114,22 @@ int main(int argc, char *argv[]) {
     if (argc < 2) {
         std::cout << "Usage: " << argv[0] << " <video file>\n";
         return -1;
+    }
+
+    int bitrate = 4000;
+    std::string preset = "ultrafast";
+    int gop = 30;
+
+    for (int i = 2; i < argc; i++) {
+        std::string arg = argv[i];
+
+        if (arg == "--bitrate" && i + 1 < argc) {
+            bitrate = std::stoi(argv[++i]);
+        } else if (arg == "--preset" && i + 1 < argc) {
+            preset = argv[++i];
+        } else if (arg == "--gop" && i + 1 < argc) {
+            gop = std::stoi(argv[++i]);
+        }
     }
 
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
@@ -151,9 +174,9 @@ int main(int argc, char *argv[]) {
 
     g_object_set(x264enc,
                  "tune", 0x00000004, // zerolatency
-                 "speed-preset", 1,  // ultrafast
-                 "bitrate", 3000,
-                 "key-int-max", 30,
+                 "speed-preset", get_preset_value(preset),
+                 "bitrate", bitrate,
+                 "key-int-max", gop,
                  NULL);
 
     g_object_set(srtsink,
@@ -223,6 +246,10 @@ int main(int argc, char *argv[]) {
     // ------------------------
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
     std::cout << "Streaming started...\n";
+    std::cout << "Encoder Config:\n"
+          << "Bitrate: " << bitrate << " kbps\n"
+          << "Preset: " << preset << "\n"
+          << "GOP: " << gop << std::endl;
 
     g_main_loop_run(loop);
 
