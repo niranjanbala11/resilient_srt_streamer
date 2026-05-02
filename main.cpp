@@ -15,11 +15,15 @@ gboolean print_srt_stats(gpointer data) {
     g_object_get(srtsink, "stats", &stats, NULL);
 
     if (stats) {
-        guint64 rtt = 0;
-        guint64 pkt_loss = 0;
+        gdouble rtt = 0.0;
+        gint64 sent = 0;
+        gint64 lost = 0;
+        
+        gst_structure_get_double(stats, "rtt-ms", &rtt);
+        gst_structure_get_int64(stats, "packets-sent", &sent);
+        gst_structure_get_int64(stats, "packets-sent-lost", &lost);
 
-        gst_structure_get_uint64(stats, "rtt", &rtt);
-        gst_structure_get_uint64(stats, "pkt-loss", &pkt_loss);
+        double pkt_loss = (sent > 0) ? (100.0 * lost / sent) : 0.0;
 
         std::cout << "[SRT STATS] RTT: " << rtt
                   << " ms | Packet Loss: " << pkt_loss << std::endl;
